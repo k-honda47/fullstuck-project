@@ -1,7 +1,7 @@
 {
   "name": "fullstuck-project",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +9,16 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k-honda47/fullstuck-project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/k-honda47/fullstuck-project/issues"
+  },
+  "homepage": "https://github.com/k-honda47/fullstuck-project#readme",
   "dependencies": {
     "express": "^4.21.1",
     "react": "^18.3.1",
