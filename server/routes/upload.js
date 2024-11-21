@@ -1,15 +1,13 @@
 const express = require('express');
-const router = express.Router();
-const uploadController = require('../controllers/uploadController');
 const multer = require('multer');
-const path = require('path');
+const uploadController = require('../controllers/uploadController');
 
+const router = express.Router();
 
-// メモリストレージを使用
+// メモリストレージを使用したMulter設定
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-// POST /api/upload
-router.post('/', upload.single('file'), uploadController.uploadPDF);
+router.post('/', upload.single('file'), uploadController.uploadCSV);
 
 module.exports = router;
