@@ -1,65 +1,66 @@
-const pdfParse = require("pdf-parse");
-const uploadModel = require("../models/uploadModel");
+const csvParser = require('csv-parser');
+const knex = require('../db/knex');
 
-// PDFアップロード
-exports.uploadPDF = async (req, res) => {
+exports.uploadCSV = async (req, res) => {
   try {
     const file = req.file;
+
     if (!file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ message: 'ファイルがアップロードされていません' });
     }
 
-    const { originalname, mimetype, buffer } = file;
+    const { buffer } = file;
+    const transactions = [];
 
-    // PDFをパース
-    const data = await pdfParse(buffer);
+    // CSVデータを解析
+    const rows = buffer.toString().split('\n');
+    const headers = rows[0].split(',').map(h => h.trim());
+    const expectedHeaders = ['date', 'description', 'amount', 'type'];
 
-    // PDFのテキストから取引情報を解析
-    // const transactions = parsePDF(data.text);
+    // ヘッダーの整合性チェック
+    if (JSON.stringify(headers) !== JSON.stringify(expectedHeaders)) {
+      return res.status(400).json({ message: 'CSVヘッダーが正しくありません' });
+    }
 
-    // 取引情報をデータベースに挿入
-    // await knex('transactions').insert(transactions);
-
-    // ファイルデータをデータベースに保存
-    await uploadModel.uploadPDF({
-      file_name: originalname,
-      mime_type: mimetype,
-      file_data: buffer,
+    rows.slice(1).forEach(line => {
+      const values = line.split(',');
+      if (values.length === expectedHeaders.length) {
+        const transaction = {};
+        expectedHeaders.forEach((key, index) => {
+          transaction[key] = values[index].trim();
+        });
+        transactions.push(transaction);
+      }
     });
 
-    res.status(200).json({ message: "Success Upload File" });
+    // データベースへの保存
+    for (const transaction of transactions) {
+      // 重複チェック（例: 同じ日付・説明・金額で重複を確認）
+      const exists = await knex('transaction_data')
+        .where({
+          date: transaction.date,
+          description: transaction.description,
+          amount: parseFloat(transaction.amount),
+        })
+        .first();
+
+      if (exists) {
+        console.log(`Skipping duplicate transaction: ${transaction.description}`);
+        continue; // 重複があればスキップ
+      }
+
+      // 新規データを挿入
+      await knex('transaction_data').insert({
+        amount: parseFloat(transaction.amount),
+        date: transaction.date,
+        description: transaction.description,
+        type: transaction.type,
+      });
+    }
+
+    res.status(200).json({ message: 'CSVファイルが正常に処理されました' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to upload" });
+    console.error('CSVアップロードエラー:', error);
+    res.status(500).json({ message: 'CSVアップロード中にエラーが発生しました' });
   }
 };
-
-// PDFから取引情報を解析する関数（例）
-// function parsePDF(text) {
-//   const transactions = [];
-//   const lines = text.split('\n');
-
-//   lines.forEach(line => {
-//     // 取引のフォーマットに合わせて正規表現を調整
-//     const regex = /(\d{4}-\d{2}-\d{2})\s+(.+?)\s+(-?\d+\.\d{2})/;
-//     const match = line.match(regex);
-//     if (match) {
-//       const [_, date, description, amount] = match;
-//       transactions.push({
-//         amount: parseFloat(amount),
-//         date: date,
-//         description: description,
-//         type: parseFloat(amount) < 0 ? 'expense' : 'income',
-//         category_id: determineCategory(description) // カテゴリを決定する関数
-//       });
-//     }
-//   });
-
-//   return transactions;
-// }
-
-// // カテゴリを決定する関数（例）
-// function determineCategory(description) {
-//   // 取引内容に基づいてカテゴリを決定するロジックを実装
-//   return 7; // 例として「その他」のカテゴリIDを返す
-// }

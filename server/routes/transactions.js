@@ -7,6 +7,9 @@ const transactionsController = require('../controllers/transactionsController');
 router.get('/', transactionsController.getAllTransactions);
 
 // 新しい取引を追加
-router.post('/', transactionsController.createTransaction);
+router.post('/', transactionsController.addTransaction);
+
+router.get('/with-categories', transactionsController.getAllTransactionsWithCategories);
+router.post('/reset-sequence', transactionsController.resetSequence);
 
 module.exports = router;
