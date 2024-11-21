@@ -1,0 +1,30 @@
+/* コンポーネント全体のスタイル */
+.transactions-container {
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  /* テーブルのスタイル */
+  .transactions-table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    width: 90%;
+  }
+  
+  .transactions-table th,
+  .transactions-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  .transactions-table th {
+    background-color: #f4f4f4;
+    color: #333;
+    font-weight: bold;
+  }
+  
+  .transactions-table td.negative {
+    color: red;
+  }
+  
